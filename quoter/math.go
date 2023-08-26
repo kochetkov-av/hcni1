@@ -35,28 +35,3 @@ func getAmountOut(amountIn, reserveIn, reserveOut *big.Int) (*big.Int, error) {
 	// amountOut = numerator / denominator;
 	return numerator.Div(numerator, denominator), nil
 }
-
-func getAmountIn(amountOut, reserveIn, reserveOut *big.Int) (*big.Int, error) {
-	if amountOut.Cmp(bigZero) <= 0 {
-		return bigZero, errors.New("insufficient output amount")
-	}
-
-	if reserveIn.Cmp(bigZero) <= 0 || reserveOut.Cmp(bigZero) <= 0 {
-		return bigZero, errors.New("insufficient liquidity")
-	}
-
-	numerator, denominator := new(big.Int), new(big.Int)
-
-	// uint numerator = reserveIn.mul(amountOut).mul(1000);
-	numerator.Mul(reserveIn, amountOut)
-	numerator.Mul(numerator, big1000)
-
-	// uint denominator = reserveOut.sub(amountOut).mul(997);
-	denominator.Sub(reserveOut, amountOut)
-	denominator.Mul(denominator, big997)
-
-	// amountIn = (numerator / denominator).add(1);
-	amountIn := numerator.Div(numerator, denominator)
-	amountIn.Add(amountIn, big.NewInt(1))
-	return amountIn, nil
-}

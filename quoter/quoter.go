@@ -22,7 +22,7 @@ func New(logger *zap.Logger) *Quoter {
 	}
 }
 
-func (q *Quoter) Quote(ethereumURL string, poolID, fromToken, toToken common.Address, amount *big.Int) (*big.Int, error) {
+func (q *Quoter) Quote(ethereumURL string, poolID, fromToken, toToken common.Address, amountIn *big.Int) (*big.Int, error) {
 	q.logger.Info("dialing ethereum endpoint")
 	client, err := ethclient.Dial(ethereumURL)
 	if err != nil {
@@ -53,13 +53,16 @@ func (q *Quoter) Quote(ethereumURL string, poolID, fromToken, toToken common.Add
 	q.logger.Info("fetching reserves")
 	reserves, err := pool.GetReserves(nil)
 	if err != nil {
-		return nil, errors.New("failed to detch reserves")
+		return nil, errors.New("failed to fetch reserves")
 	}
 
 	q.logger.Info("calculating quotes")
+	var reserve0, reserve1 *big.Int
 	if t0 == fromToken {
-		return getAmountOut(amount, reserves.Reserve0, reserves.Reserve1)
+		reserve0, reserve1 = reserves.Reserve0, reserves.Reserve1
+	} else {
+		reserve0, reserve1 = reserves.Reserve1, reserves.Reserve0
 	}
 
-	return getAmountIn(amount, reserves.Reserve0, reserves.Reserve1)
+	return getAmountOut(amountIn, reserve0, reserve1)
 }

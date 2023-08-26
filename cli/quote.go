@@ -5,17 +5,20 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/kochetkov-av/hcni1/quoter"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
 
 type (
+	Quoter interface {
+		Quote(ethereumURL string, poolID, fromToken, toToken common.Address, amountIn *big.Int) (*big.Int, error)
+	}
+
 	Cli struct {
 		logger  *zap.Logger
 		RootCmd *cobra.Command
 
-		quoter *quoter.Quoter
+		quoter Quoter
 	}
 
 	Flags struct {
@@ -28,7 +31,7 @@ type (
 	}
 )
 
-func New(logger *zap.Logger, quoter *quoter.Quoter) *Cli {
+func New(logger *zap.Logger, quoter Quoter) *Cli {
 	c := &Cli{
 		logger: logger,
 		quoter: quoter,
